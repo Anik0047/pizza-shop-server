@@ -23,6 +23,8 @@ async function run() {
         const pizzaCollection = client.db('dbpizza').collection('pizza');
         const blogCollection = client.db('dbpizza').collection('blog');
         const userCollection = client.db('dbpizza').collection('user');
+        const contactCollection = client.db('dbpizza').collection('contact');
+        const orderCollection = client.db('dbpizza').collection('order');
 
         // GET OPERATION
         app.get('/pizza', async (req, res) => {
@@ -62,6 +64,23 @@ async function run() {
             const result = await blogCollection.insertOne(blog);
             res.send(result);
         })
+
+        // Contact
+
+        app.post('/contact', async (req, res) => {
+            const contact = req.body;
+            const result = await contactCollection.insertOne(contact);
+            res.send(result);
+        })
+
+        // Order
+
+        app.post('/order', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        })
+
 
         // DELETE OPERATION 
         app.delete('/pizza/:id', async (req, res) => {
