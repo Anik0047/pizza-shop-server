@@ -26,6 +26,18 @@ async function run() {
         const contactCollection = client.db('dbpizza').collection('contact');
         const orderCollection = client.db('dbpizza').collection('order');
 
+
+        // VERIFY ADMIN
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await userCollection.findOne(query);
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'Forbidden Access' })
+            }
+            next();
+        }
+
         // GET OPERATION
         app.get('/pizza', async (req, res) => {
             const query = {};
@@ -40,11 +52,25 @@ async function run() {
             res.send(blog);
         });
 
+
+        app.get('/user', async (req, res) => {
+            const query = {};
+            const user = await userCollection.find(query).toArray();
+            res.send(user);
+        });
+
+
+        app.get('/order', async (req, res) => {
+            const query = {};
+            const order = await orderCollection.find(query).toArray();
+            res.send(order);
+        });
+
         // POST OPERATION
 
         //Pizza
 
-        app.post('/addPizza', async (req, res) => {
+        app.post('/addPizza', verifyAdmin, async (req, res) => {
             const pizza = req.body;
             const result = await pizzaCollection.insertOne(pizza);
             res.send(result);
@@ -82,6 +108,43 @@ async function run() {
         })
 
 
+
+        app.get('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email }
+            const user = await userCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin' });
+        })
+
+        app.get('/myorders', async (req, res) => {
+            const email = req.query.email;
+            console.log(email);
+            // const decodedEmail = req.decoded.email;
+
+            // if (email !== decodedEmail) {
+            //     return res.status(403).send({ message: 'forbidden access' })
+            // }
+            const query = {
+                email: email
+            }
+            const orders = await orderCollection .find(query).toArray();
+            res.send(orders);
+        });
+
+
+        app.put('/user/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
         // DELETE OPERATION 
         app.delete('/pizza/:id', async (req, res) => {
             const id = req.params.id;
@@ -95,6 +158,21 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const result = await blogCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+
+        app.delete('/user/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await userCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+        app.delete('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await orderCollection.deleteOne(filter);
             res.send(result);
         });
 
