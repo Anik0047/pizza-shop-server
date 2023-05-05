@@ -28,15 +28,15 @@ async function run() {
 
 
         // VERIFY ADMIN
-        const verifyAdmin = async (req, res, next) => {
-            const decodedEmail = req.decoded.email;
-            const query = { email: decodedEmail };
-            const user = await userCollection.findOne(query);
-            if (user?.role !== 'admin') {
-                return res.status(403).send({ message: 'Forbidden Access' })
-            }
-            next();
-        }
+        // const verifyAdmin = async (req, res, next) => {
+        //     const decodedEmail = req.decoded.email;
+        //     const query = { email: decodedEmail };
+        //     const user = await userCollection.findOne(query);
+        //     if (user?.role !== 'admin') {
+        //         return res.status(403).send({ message: 'Forbidden Access' })
+        //     }
+        //     next();
+        // }
 
         // GET OPERATION
         app.get('/pizza', async (req, res) => {
@@ -70,7 +70,7 @@ async function run() {
 
         //Pizza
 
-        app.post('/addPizza', verifyAdmin, async (req, res) => {
+        app.post('/addPizza', async (req, res) => {
             const pizza = req.body;
             const result = await pizzaCollection.insertOne(pizza);
             res.send(result);
@@ -118,16 +118,10 @@ async function run() {
 
         app.get('/myorders', async (req, res) => {
             const email = req.query.email;
-            console.log(email);
-            // const decodedEmail = req.decoded.email;
-
-            // if (email !== decodedEmail) {
-            //     return res.status(403).send({ message: 'forbidden access' })
-            // }
             const query = {
                 email: email
             }
-            const orders = await orderCollection .find(query).toArray();
+            const orders = await orderCollection.find(query).toArray();
             res.send(orders);
         });
 
