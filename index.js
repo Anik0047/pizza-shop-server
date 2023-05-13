@@ -25,6 +25,7 @@ async function run() {
         const userCollection = client.db('dbpizza').collection('user');
         const contactCollection = client.db('dbpizza').collection('contact');
         const orderCollection = client.db('dbpizza').collection('order');
+        const commentsCollection = client.db('dbpizza').collection('comment');
 
 
         // VERIFY ADMIN
@@ -46,13 +47,6 @@ async function run() {
         });
 
 
-        app.get('/blog', async (req, res) => {
-            const query = {};
-            const blog = await blogCollection.find(query).toArray();
-            res.send(blog);
-        });
-
-
         app.get('/user', async (req, res) => {
             const query = {};
             const user = await userCollection.find(query).toArray();
@@ -64,6 +58,42 @@ async function run() {
             const query = {};
             const order = await orderCollection.find(query).toArray();
             res.send(order);
+        });
+
+
+        app.get('/blog', async (req, res) => {
+            const query = {};
+            const blog = await blogCollection.find(query).toArray();
+            res.send(blog);
+        });
+
+        app.get('/blog/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const users = await blogCollection.find(query).toArray();
+            res.send(users);
+        });
+
+
+
+        app.get('/comments', async (req, res) => {
+            const query = {};
+            const users = await commentsCollection.find(query).toArray();
+            res.send(users);
+        });
+
+        app.get('/mycomments', async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Forbidden access' })
+            }
+            const query = {
+                userEmail: email
+            }
+            const comments = await commentsCollection.find(query).toArray();
+            res.send(comments);
         });
 
         // POST OPERATION
@@ -104,6 +134,24 @@ async function run() {
         app.post('/order', async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order);
+            res.send(result);
+        })
+
+        // Comments
+
+        app.post('/comments', async (req, res) => {
+            const comments = req.body;
+            console.log(comments);
+            const result = await commentsCollection.insertOne(comments);
+            res.send(result);
+        })
+
+        // orderplace
+
+        app.post('/orderPlace', async (req, res) => {
+            const orderPlace = req.body;
+            console.log(orderPlace);
+            const result = await ordersCollection.insertOne(orderPlace);
             res.send(result);
         })
 
@@ -167,6 +215,13 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const result = await orderCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+        app.delete('/mycomments/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await commentsCollection.deleteOne(filter);
             res.send(result);
         });
 
